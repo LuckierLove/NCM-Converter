@@ -1,9 +1,11 @@
 package cn.luckierlove.service
 
+import cn.luckierlove.entity.Meta
 import cn.luckierlove.entity.NCM
 import cn.luckierlove.utils.AES
 import cn.luckierlove.utils.ByteUtils
 import cn.luckierlove.utils.RC4
+import com.alibaba.fastjson2.JSON
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.audio.flac.metadatablock.MetadataBlockDataPicture
 import org.jaudiotagger.tag.FieldKey
@@ -29,10 +31,10 @@ class Converter {
      *
      * @param ncmFilePath NCM文件路径
      * @param outFilePath MP3文件路径
-     * @return 是否转换成功
+     * @return
      */
-    fun ncm2mp3(ncmFilePath: String, outFilePath: String): Boolean {
-        var ncm: NCM = NCM(null, null, null, null)
+    fun ncm2mp3(ncmFilePath: String, outFilePath: String){
+        val ncm: NCM = NCM(null, null, null, null)
         ncm.ncmFilePath = ncmFilePath
 
         val inputStream: FileInputStream = FileInputStream(ncm.ncmFilePath)
@@ -40,8 +42,20 @@ class Converter {
         magicHeader(inputStream)
 
         val key: ByteArray = rc4Key(inputStream)
+        val meta: Meta = JSON.parseObject(metaData(inputStream), Meta::class.java)
+        ncm.meta = meta
 
-        // TODO
+        val image: ByteArray = albumImage(inputStream)
+        ncm.image = image
+
+        val ncmFile: File = File(ncmFilePath)
+        val newOutFilePath: String = outFilePath + File.separator + ncmFile.name.substring(0, ncmFile.getName().length - 3) + ncm.meta?.format
+        ncm.outputFilePath = newOutFilePath
+        val outputStream: FileOutputStream = FileOutputStream(ncm.outputFilePath)
+
+        musicData(inputStream, outputStream, key)
+        combineFile(ncm)
+        println("转换成功文件: $newOutFilePath")
     }
 
     /**

@@ -10,7 +10,7 @@ class ByteUtils {
          * @return 图片类型
          */
         fun albumImageMimeType(albumImage: ByteArray): String {
-            val mPNG: ByteArray = byteArrayOf(0x89 as Byte, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A) // PNG 文件 头标识
+            val mPNG: ByteArray = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A) // PNG 文件 头标识
             if(albumImage.size > 8){
                 IntRange(0, 7).forEach {
                     if(albumImage[it] != mPNG[it]) return "image/jpg"
